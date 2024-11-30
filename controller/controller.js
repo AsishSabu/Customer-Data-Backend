@@ -6,6 +6,7 @@ const getCustomerData = async (req, res) => {
   const skip = (page - 1) * limit;
   const query = {};
   const today = new Date();
+  console.log(req.query);
 
   try {
     if (page <= 0 || isNaN(page)) {
@@ -34,9 +35,21 @@ const getCustomerData = async (req, res) => {
         { email: { $regex: search, $options: "i" } },
       ];
     }
+    const sort = search
+      ? {
+          name_of_customer: {
+            $regex: `^${search}`,
+            $options: "i",
+          }
+            ? 1
+            : 0,
+          name_of_customer: 1,
+        }
+      : { s_no: 1 };
 
     const totalCount = await Customer.countDocuments(query);
-    const data = await Customer.find(query).skip(skip).limit(limit);
+    const data = await Customer.find(query).sort(sort).skip(skip).limit(limit);
+
     res.status(200).json({ data, count: totalCount });
   } catch (error) {
     console.error("Error fetching customers:", error);
